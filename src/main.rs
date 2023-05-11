@@ -1,22 +1,44 @@
 use std::env;
 use std::fs;
+use directories::UserDirs;
+use rfd::FileDialog;
 
 mod tag_gui;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
+    if args.len() == 1 {
+        println!("Usage: rn <path> -> Renames all the files in the folder to the folder\n gui <path> -> Starts the GUI for tagging");
+    }
+
     let command = &args[1];
-    let file_path = &args[2];
+    
 
     if command == "rn" {
+        let file_path = &args[2];
         let name = file_path.split('\\').last().unwrap();
         println!("{} to {}", name, file_path);
         rename_file(file_path, name);
         return;
     }
     if command == "gui" {
-        start_tagging_gui(file_path);
+        if  args.len() < 3 {
+            println!("Select file folder");
+            let file_path = FileDialog::new()
+            .set_directory(UserDirs::new().unwrap().desktop_dir().unwrap().to_str().unwrap())
+            .pick_folder();
+            if file_path.is_none() {
+            println!("No folder selected");
+            return;
+            }
+            start_tagging_gui(file_path.unwrap().to_str().unwrap());
+        }else{
+            let file_path = &args[2];
+            start_tagging_gui(file_path);
+
+        }
+        
     }
 }
 
@@ -45,7 +67,7 @@ fn start_tagging_gui(path: &str) {
     // env_logger::init();
 
     let options = eframe::NativeOptions {
-        initial_window_size: Some(egui::vec2(640.0, 720.0)),
+        initial_window_size: Some(egui::vec2(840.0, 720.0)),
         ..Default::default()
     };
 

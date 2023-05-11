@@ -341,7 +341,12 @@ impl ImageLoader {
             }
         }
 
-        let caption = fs::read_to_string(tags_path).unwrap();
+        let read_op = fs::read_to_string(tags_path);
+        let caption = if let Ok(caption) = read_op {
+            caption
+        } else {
+            String::new()
+        };
         Some(CaptionedImg::new(file_name, &caption, &buffer))
     }
 

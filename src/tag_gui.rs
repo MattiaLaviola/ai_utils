@@ -34,7 +34,6 @@ impl TagGui {
     }
 
     fn setup_file_list(container: &mut Vec<String>, dir: &str) {
-        println!("Note: only files ending in .png are supported");
 
         let files = fs::read_dir(dir).unwrap();
 
@@ -42,7 +41,8 @@ impl TagGui {
             let file = file.unwrap();
 
             // In the directory we expect 2 files, an image, and a txt file containing the tags
-            if file.file_name().to_str().unwrap().ends_with(".png") {
+            let name = file.file_name().to_str().unwrap().to_string();
+            if name.ends_with(".png") || name.ends_with(".jpg") || name.ends_with(".jpeg") {
                 let name = file.file_name().to_str().unwrap().to_string();
 
                 // We remove the .png extension
@@ -56,7 +56,7 @@ impl TagGui {
 impl eframe::App for TagGui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Tagging Tool");
+            //ui.heading("Tagging Tool");
 
             if !self.loaded_first_img {
                 self.loaded_first_img = true;
@@ -76,6 +76,46 @@ impl eframe::App for TagGui {
                 });
             }
 
+            ui.horizontal(|ui| {
+                let std_button_size = egui::vec2(90.0, 30.0);
+                
+
+                ui.label(format!("{}", self.current_image.name()));
+
+                let available_width = ui.available_width() - std_button_size.x * 3.0 - 30.0;
+
+                ui.add_space(available_width);
+
+                let button = egui::Button::new("Previous")
+                .min_size(std_button_size);
+                if ui.add(button).clicked() {
+                    self.can_open_warinig = true;
+                    self.img_loader.save(&self.current_image);
+                    let img = self.img_loader.get_previous();
+                    if let Some(img) = img {
+                        self.current_image = img;
+                    }
+                }
+
+                let button = egui::Button::new("Next")
+                .min_size(std_button_size);
+                if ui.add(button).clicked() {
+                    self.can_open_warinig = true;
+                    self.img_loader.save(&self.current_image);
+                    let img = self.img_loader.get_next();
+                    if let Some(img) = img {
+                        self.current_image = img;
+                    }
+                }
+
+                let button  = egui::Button::new("Save")
+                .min_size(std_button_size);
+                if ui.add(button).clicked() {
+                    self.img_loader.save(&self.current_image);
+                }
+            });
+
+            ui.add_space(10.0);
             ui.horizontal(|ui| {
                 //Main pic
                 self.current_image.show(ui);
@@ -98,31 +138,7 @@ impl eframe::App for TagGui {
                 .desired_rows(5);
             ui.add(persistent_txt);
 
-            ui.horizontal_centered(|ui| {
-                if ui.button("Previous").clicked() {
-                    self.can_open_warinig = true;
-                    self.img_loader.save(&self.current_image);
-                    let img = self.img_loader.get_previous();
-                    if let Some(img) = img {
-                        self.current_image = img;
-                    }
-                }
-
-                ui.label(format!(" Selected file: {}", self.current_image.name()));
-
-                if ui.button("Next").clicked() {
-                    self.can_open_warinig = true;
-                    self.img_loader.save(&self.current_image);
-                    let img = self.img_loader.get_next();
-                    if let Some(img) = img {
-                        self.current_image = img;
-                    }
-                }
-
-                if ui.button("Save").clicked() {
-                    self.img_loader.save(&self.current_image);
-                }
-            });
+           
         });
     }
 }
