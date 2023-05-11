@@ -1,7 +1,7 @@
-use std::env;
-use std::fs;
 use directories::UserDirs;
 use rfd::FileDialog;
+use std::env;
+use std::fs;
 
 mod tag_gui;
 
@@ -13,7 +13,6 @@ fn main() {
     }
 
     let command = &args[1];
-    
 
     if command == "rn" {
         let file_path = &args[2];
@@ -23,22 +22,27 @@ fn main() {
         return;
     }
     if command == "gui" {
-        if  args.len() < 3 {
+        if args.len() < 3 {
             println!("Select file folder");
             let file_path = FileDialog::new()
-            .set_directory(UserDirs::new().unwrap().desktop_dir().unwrap().to_str().unwrap())
-            .pick_folder();
+                .set_directory(
+                    UserDirs::new()
+                        .unwrap()
+                        .desktop_dir()
+                        .unwrap()
+                        .to_str()
+                        .unwrap(),
+                )
+                .pick_folder();
             if file_path.is_none() {
-            println!("No folder selected");
-            return;
+                println!("No folder selected");
+                return;
             }
             start_tagging_gui(file_path.unwrap().to_str().unwrap());
-        }else{
+        } else {
             let file_path = &args[2];
             start_tagging_gui(file_path);
-
         }
-        
     }
 }
 
