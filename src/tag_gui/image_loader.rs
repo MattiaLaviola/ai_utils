@@ -234,9 +234,9 @@ impl ImageLoader {
                 let command = recv_channel.recv().expect("Main thread shut down");
                 match command {
                     BufferCommand::LoadNext => {
-                        if !second_img{
-                        pos += 1;
-                        }else{
+                        if !second_img {
+                            pos += 1;
+                        } else {
                             second_img = false;
                         }
 
@@ -250,8 +250,8 @@ impl ImageLoader {
                         }
 
                         // the ownership of next_img is going to be transfered, so if needed we clone it here
-                        let next_next_img = if pos +1 < t_files.len() {
-                            ImageLoader::load_valid_image(&t_dir, &mut t_files, pos +1, false)
+                        let next_next_img = if pos + 1 < t_files.len() {
+                            ImageLoader::load_valid_image(&t_dir, &mut t_files, pos + 1, false)
                         } else {
                             next_img.clone()
                         };
@@ -292,7 +292,6 @@ impl ImageLoader {
                             next_img
                         } else {
                             ImageLoader::load_valid_image(&t_dir, &mut t_files, pos, BACKWARD)
-
                         };
 
                         to_gui

@@ -22,12 +22,11 @@ fn main() {
 
 fn rename_file(path: &str, new_name: &str) {
     let files = fs::read_dir(path).unwrap();
-    
 
     // if we do not save the state of the directory, the same file will be renamed multiple times
     let files: Vec<_> = files.collect();
 
-    for (cnt,file) in files.into_iter().enumerate() {
+    for (cnt, file) in files.into_iter().enumerate() {
         let f_path = file.unwrap().path();
 
         let new_path = if cnt != 0 {
@@ -36,7 +35,7 @@ fn rename_file(path: &str, new_name: &str) {
             path.to_string() + "\\" + new_name + ".jpg"
         };
         println!("{}  {}", f_path.display(), new_path);
-        if fs::rename(f_path, new_path).is_err(){
+        if fs::rename(f_path, new_path).is_err() {
             println!("Failde to execute previous rename");
         }
     }
@@ -55,5 +54,6 @@ fn start_tagging_gui(path: &str) {
         "Dataset images tagging util",
         options,
         Box::new(|_cc| Box::<tag_gui::TagGui>::new(gui)),
-    ).unwrap();
+    )
+    .unwrap();
 }

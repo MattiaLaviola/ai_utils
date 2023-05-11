@@ -1,12 +1,6 @@
 use eframe::egui;
 
-
 use std::fs;
-
-
-
-
-
 
 pub mod image_loader;
 use image_loader::CaptionedImg;
