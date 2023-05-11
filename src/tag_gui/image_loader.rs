@@ -6,10 +6,11 @@ use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 use std::sync::mpsc;
-use std::sync::mpsc::TryRecvError;
+
 use std::thread;
 use std::thread::JoinHandle;
 
+#[allow(dead_code)]
 enum BufferCommand {
     LoadNext,
     LoadPrevious,
@@ -188,9 +189,9 @@ impl ImageLoader {
 
         let is_correct = |img: &BufferResult| {
             if forward {
-                return img.is_next();
+                img.is_next()
             } else {
-                return img.is_previous();
+                img.is_previous()
             }
         };
 
@@ -205,14 +206,14 @@ impl ImageLoader {
         }
 
         if img.is_none() {
-            return None;
+            None
         } else {
-            return Some(img.unwrap());
+            Some(img.unwrap())
         }
     }
 
     fn start_thread(data: WorkerThreadData) -> JoinHandle<()> {
-        return thread::spawn(move || {
+        thread::spawn(move || {
             let data = data;
             // Data unwarap----------------------
             let t_dir = data.t_dir;
@@ -235,7 +236,7 @@ impl ImageLoader {
                     BufferCommand::LoadNext => {
                         if !second_img{
                         pos += 1;
-                        }{
+                        }else{
                             second_img = false;
                         }
 
@@ -312,7 +313,7 @@ impl ImageLoader {
                     }
                 }
             }
-        });
+        })
     }
 
     fn try_load_image(root_dir: &String, file_name: &String) -> Option<CaptionedImg> {
@@ -324,7 +325,7 @@ impl ImageLoader {
             return None;
         }
 
-        let base = if root_dir.ends_with("\\") {
+        let base = if root_dir.ends_with('\\') {
             root_dir.to_owned() + file_name
         } else {
             root_dir.to_owned() + "\\" + file_name
@@ -334,7 +335,7 @@ impl ImageLoader {
         let tags_path = base + ".txt";
 
         let mut buffer = vec![];
-        if let Ok(mut file) = File::open(img_path.clone()) {
+        if let Ok(mut file) = File::open(img_path) {
             if let Err(e) = file.read_to_end(&mut buffer) {
                 println!("Error reading file: {}", e);
                 return None;
@@ -342,7 +343,7 @@ impl ImageLoader {
         }
 
         let caption = fs::read_to_string(tags_path).unwrap();
-        Some(CaptionedImg::new(&file_name, &caption, &buffer))
+        Some(CaptionedImg::new(file_name, &caption, &buffer))
     }
 
     // This function returns an image if a valid one is found, otherwise it returns None
@@ -370,8 +371,8 @@ impl ImageLoader {
         img.unwrap()
     }
 
-    fn save_image(file_name: &str, caption: &str, root_dir: &String) {
-        let tags_path = root_dir.clone() + "\\" + file_name + ".txt";
+    fn save_image(file_name: &str, caption: &str, root_dir: &str) {
+        let tags_path = root_dir.to_owned() + "\\" + file_name + ".txt";
 
         let file = File::create(tags_path);
         if file.is_err() {

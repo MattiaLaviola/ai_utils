@@ -1,12 +1,12 @@
 use eframe::egui;
-use egui_extras::image::RetainedImage;
-use image::codecs::png::PngDecoder;
+
+
 use std::fs;
-use std::fs::File;
-use std::io::Read;
-use std::io::Write;
-use std::sync::mpsc;
-use std::thread;
+
+
+
+
+
 
 pub mod image_loader;
 use image_loader::CaptionedImg;
@@ -24,7 +24,7 @@ impl TagGui {
     pub fn new(path: &str) -> Self {
         let mut container = Vec::new();
         TagGui::setup_file_list(&mut container, path);
-        if container.len() == 0 {
+        if container.is_empty() {
             panic!("No files found in directory");
         }
         let bytes = include_bytes!("../assets/no_img.png");
@@ -64,7 +64,7 @@ impl eframe::App for TagGui {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Tagging Tool");
 
-            if self.loaded_first_img == false {
+            if !self.loaded_first_img {
                 self.loaded_first_img = true;
                 let img = self.img_loader.get_next();
                 if img.is_none() {
@@ -109,8 +109,8 @@ impl eframe::App for TagGui {
                     self.can_open_warinig = true;
                     self.img_loader.save(&self.current_image);
                     let img = self.img_loader.get_previous();
-                    if img.is_some() {
-                        self.current_image = img.unwrap();
+                    if let Some(img) = img {
+                        self.current_image = img;
                     }
                 }
 
@@ -120,8 +120,8 @@ impl eframe::App for TagGui {
                     self.can_open_warinig = true;
                     self.img_loader.save(&self.current_image);
                     let img = self.img_loader.get_next();
-                    if img.is_some() {
-                        self.current_image = img.unwrap();
+                    if let Some(img) = img {
+                        self.current_image = img;
                     }
                 }
 
