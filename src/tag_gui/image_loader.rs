@@ -37,10 +37,6 @@ impl BufferResult {
         matches!(*self, BufferResult::None)
     }
 
-    fn is_some(&self) -> bool {
-        !self.is_none()
-    }
-
     fn is_next(&self) -> bool {
         matches!(*self, BufferResult::Next(_))
     }
@@ -78,8 +74,13 @@ impl CaptionedImg {
         self.wrong_size
     }
 
-    pub fn new(name: &str, caption: &str, img: &[u8]) -> Self {
-        let cache = egui_extras::RetainedImage::from_image_bytes(name, img).unwrap();
+    pub fn new(name: &str, caption: &str, img: &[u8]) -> Option<Self>  {
+        // TODO fix program crashing when the image is not loading
+        let cache = egui_extras::RetainedImage::from_image_bytes(name, img);
+        if cache.is_err() {
+            return None;
+        }
+        let cache = cache.unwrap();
         let mut w_size = false;
         if cache.width() != 512 || cache.height() != 512 {
             println!(
@@ -90,13 +91,14 @@ impl CaptionedImg {
             );
             w_size = true;
         }
+        Some(
         Self {
             name: name.to_string(),
             caption: caption.to_string(),
             img: img.to_vec(),
             cache,
             wrong_size: w_size,
-        }
+        })
     }
 }
 
@@ -129,7 +131,7 @@ struct WorkerThreadData {
 
 // This struct is used as a buffer for preloading the images,to speed up the loading
 pub struct ImageLoader {
-    thread_handle: std::thread::JoinHandle<()>,
+    _thread_handle: std::thread::JoinHandle<()>,
     send_channel: std::sync::mpsc::Sender<BufferCommand>,
     recv_channel: std::sync::mpsc::Receiver<BufferResult>,
     // TODO: Implement buffer to allow faster scrolling
@@ -160,7 +162,7 @@ impl ImageLoader {
         Self {
             send_channel: to_thread,
             recv_channel: recv_gui,
-            thread_handle,
+            _thread_handle: thread_handle,
         }
     }
 
@@ -175,6 +177,12 @@ impl ImageLoader {
     pub fn save(&mut self, img: &CaptionedImg) {
         self.send_channel
             .send(BufferCommand::Save(img.name(), img.caption()))
+            .unwrap();
+    }
+
+    pub fn save_caption(&mut self, name: &str, caption: &str) {
+        self.send_channel
+            .send(BufferCommand::Save(name.to_string(), caption.to_string()))
             .unwrap();
     }
 
@@ -234,6 +242,12 @@ impl ImageLoader {
                 let command = recv_channel.recv().expect("Main thread shut down");
                 match command {
                     BufferCommand::LoadNext => {
+
+                        if t_files.is_empty() {
+                            to_gui.send(BufferResult::None).expect("Main therad shut down");
+                            continue;
+                        }
+
                         if !second_img {
                             pos += 1;
                         } else {
@@ -279,6 +293,12 @@ impl ImageLoader {
                                 .expect("Main therad shut down");
                             continue;
                         }
+
+                        if t_files.is_empty() {
+                            to_gui.send(BufferResult::None).expect("Main therad shut down");
+                            continue;
+                        }
+
                         pos -= 1;
 
                         // the ownership of next_img is going to be transfered, so if needed we clone it here
@@ -347,7 +367,7 @@ impl ImageLoader {
         } else {
             String::new()
         };
-        Some(CaptionedImg::new(file_name, &caption, &buffer))
+        CaptionedImg::new(file_name, &caption, &buffer)
     }
 
     // This function returns an image if a valid one is found, otherwise it returns None
@@ -389,8 +409,8 @@ impl ImageLoader {
         }
     }
 
-    fn get_std_img() -> CaptionedImg {
+    pub fn get_std_img() -> CaptionedImg {
         let bytes = include_bytes!("../../assets/no_img.png");
-        CaptionedImg::new("no image", ".\\", bytes)
+        CaptionedImg::new("no image", ".\\", bytes).unwrap()
     }
 }

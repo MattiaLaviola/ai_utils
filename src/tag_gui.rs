@@ -21,11 +21,11 @@ impl TagGui {
         if container.is_empty() {
             panic!("No files found in directory");
         }
-        let bytes = include_bytes!("../assets/no_img.png");
+       // println!("{:?}", container); let bytes = include_bytes!("../assets/no_img.png");
 
         TagGui {
             img_loader: image_loader::ImageLoader::new(path.to_string(), container),
-            current_image: image_loader::CaptionedImg::new("no image", ".\\", bytes),
+            current_image: image_loader::ImageLoader::get_std_img(),
             persistent_txt: String::new(),
             desired_rows: 35,
             loaded_first_img: false,
@@ -90,22 +90,32 @@ impl eframe::App for TagGui {
                 .min_size(std_button_size);
                 if ui.add(button).clicked() {
                     self.can_open_warinig = true;
-                    self.img_loader.save(&self.current_image);
+
+                    let img_name = self.current_image.name();
+                    let img_caption = self.current_image.caption();
+
                     let img = self.img_loader.get_previous();
                     if let Some(img) = img {
                         self.current_image = img;
                     }
+
+                    self.img_loader.save_caption(&img_name, &img_caption);
                 }
 
                 let button = egui::Button::new("Next")
                 .min_size(std_button_size);
                 if ui.add(button).clicked() {
                     self.can_open_warinig = true;
-                    self.img_loader.save(&self.current_image);
                     let img = self.img_loader.get_next();
+
+                    let img_name = self.current_image.name();
+                    let img_caption = self.current_image.caption();
+
                     if let Some(img) = img {
                         self.current_image = img;
                     }
+
+                    self.img_loader.save_caption(&img_name, &img_caption);
                 }
 
                 let button  = egui::Button::new("Save")
