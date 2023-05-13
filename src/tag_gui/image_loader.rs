@@ -74,7 +74,7 @@ impl CaptionedImg {
         self.wrong_size
     }
 
-    pub fn new(name: &str, caption: &str, img: &[u8]) -> Option<Self>  {
+    pub fn new(name: &str, caption: &str, img: &[u8]) -> Option<Self> {
         // TODO fix program crashing when the image is not loading
         let cache = egui_extras::RetainedImage::from_image_bytes(name, img);
         if cache.is_err() {
@@ -91,8 +91,7 @@ impl CaptionedImg {
             );
             w_size = true;
         }
-        Some(
-        Self {
+        Some(Self {
             name: name.to_string(),
             caption: caption.to_string(),
             img: img.to_vec(),
@@ -242,9 +241,10 @@ impl ImageLoader {
                 let command = recv_channel.recv().expect("Main thread shut down");
                 match command {
                     BufferCommand::LoadNext => {
-
                         if t_files.is_empty() {
-                            to_gui.send(BufferResult::None).expect("Main therad shut down");
+                            to_gui
+                                .send(BufferResult::None)
+                                .expect("Main therad shut down");
                             continue;
                         }
 
@@ -295,7 +295,9 @@ impl ImageLoader {
                         }
 
                         if t_files.is_empty() {
-                            to_gui.send(BufferResult::None).expect("Main therad shut down");
+                            to_gui
+                                .send(BufferResult::None)
+                                .expect("Main therad shut down");
                             continue;
                         }
 
@@ -400,7 +402,7 @@ impl ImageLoader {
 
         let file = File::create(tags_path);
         if file.is_err() {
-            println!("File not found");
+            println!("Impossible to save");
             return;
         }
 

@@ -21,7 +21,7 @@ impl TagGui {
         if container.is_empty() {
             panic!("No files found in directory");
         }
-       // println!("{:?}", container); let bytes = include_bytes!("../assets/no_img.png");
+        // println!("{:?}", container); let bytes = include_bytes!("../assets/no_img.png");
 
         TagGui {
             img_loader: image_loader::ImageLoader::new(path.to_string(), container),
@@ -34,7 +34,6 @@ impl TagGui {
     }
 
     fn setup_file_list(container: &mut Vec<String>, dir: &str) {
-
         let files = fs::read_dir(dir).unwrap();
 
         for file in files {
@@ -78,7 +77,6 @@ impl eframe::App for TagGui {
 
             ui.horizontal(|ui| {
                 let std_button_size = egui::vec2(90.0, 30.0);
-                
 
                 ui.label(format!("{}", self.current_image.name()));
 
@@ -86,8 +84,7 @@ impl eframe::App for TagGui {
 
                 ui.add_space(available_width);
 
-                let button = egui::Button::new("Previous")
-                .min_size(std_button_size);
+                let button = egui::Button::new("Previous").min_size(std_button_size);
                 if ui.add(button).clicked() {
                     self.can_open_warinig = true;
 
@@ -102,8 +99,7 @@ impl eframe::App for TagGui {
                     self.img_loader.save_caption(&img_name, &img_caption);
                 }
 
-                let button = egui::Button::new("Next")
-                .min_size(std_button_size);
+                let button = egui::Button::new("Next").min_size(std_button_size);
                 if ui.add(button).clicked() {
                     self.can_open_warinig = true;
                     let img = self.img_loader.get_next();
@@ -118,8 +114,7 @@ impl eframe::App for TagGui {
                     self.img_loader.save_caption(&img_name, &img_caption);
                 }
 
-                let button  = egui::Button::new("Save")
-                .min_size(std_button_size);
+                let button = egui::Button::new("Save").min_size(std_button_size);
                 if ui.add(button).clicked() {
                     self.img_loader.save(&self.current_image);
                 }
@@ -147,8 +142,6 @@ impl eframe::App for TagGui {
                 .desired_width(f32::INFINITY)
                 .desired_rows(5);
             ui.add(persistent_txt);
-
-           
         });
     }
 }
