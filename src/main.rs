@@ -1,19 +1,19 @@
+use colored::Colorize;
 use directories::UserDirs;
 use rfd::FileDialog;
 use std::env;
 use std::fs;
 use std::fs::DirEntry;
-use colored::Colorize;
 use std::fs::File;
 use std::io::Write;
 
 mod tag_gui;
-
 fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() == 1 {
         println!("Usage: rn <path> -> Renames all the files in the folder to the folder\n gui <path> -> Starts the GUI for tagging");
+        return;
     }
 
     let command = &args[1];
@@ -48,6 +48,7 @@ fn main() {
             let file_path = &args[2];
             start_tagging_gui(file_path);
         }
+        return;
     }
 
     if command == "sub" {
@@ -62,8 +63,8 @@ fn main() {
         let filter = |filename: &str| {
             let ext = filename.split('.').last();
             if ext.is_none() {
-                    return false;
-            }else{
+                return false;
+            } else {
                 return ext.unwrap() == "txt";
             }
         };
@@ -71,7 +72,9 @@ fn main() {
         let files = get_files_in_folder(path, Some(&filter));
 
         substitute(&files, old, new);
+        return;
     }
+    println!("Usage: rn <path> -> Renames all the files in the folder to the folder\n gui <path> -> Starts the GUI for tagging");
 }
 
 fn rename_file(path: &str, new_name: &str) {
@@ -138,7 +141,7 @@ fn get_files_in_folder(path: &str, filter: Option<&dyn Fn(&str) -> bool>) -> Vec
     good_files
 }
 
-fn substitute(files: &Vec<DirEntry>, old: &str, new: &str){
+fn substitute(files: &Vec<DirEntry>, old: &str, new: &str) {
     for file in files {
         let caption = fs::read_to_string(file.path());
         if caption.is_err() {
@@ -157,6 +160,5 @@ fn substitute(files: &Vec<DirEntry>, old: &str, new: &str){
         if write!(file.unwrap(), "{}", new_caption).is_err() {
             println!("Error saving file");
         }
-
-}
+    }
 }

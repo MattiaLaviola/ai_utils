@@ -202,7 +202,7 @@ impl ImageLoader {
             }
         };
 
-        // We ask the thread for the next image, it should already be loaded
+        // We ask the thread for the next image, it should already be in ram by now
         self.send_channel.send(gen_request()).unwrap();
 
         let img = self.recv_channel.recv().expect("Worker thread closed");
@@ -247,7 +247,10 @@ impl ImageLoader {
                                 .expect("Main therad shut down");
                             continue;
                         }
-
+                        
+                        // This is needed because when the thread has just started and is executing ths code for the first time
+                        // if now we do pos +=1 (pos = 1) and the we load pos+1 (pos = 2) we are skipping the pos=1 image
+                        // the solutions are either init pos to -1 and make it a signed int on this
                         if !second_img {
                             pos += 1;
                         } else {
@@ -263,16 +266,13 @@ impl ImageLoader {
                             continue;
                         }
 
-                        // the ownership of next_img is going to be transfered, so if needed we clone it here
-                        let next_next_img = if pos + 1 < t_files.len() {
-                            ImageLoader::load_valid_image(&t_dir, &mut t_files, pos + 1, false)
-                        } else {
-                            next_img.clone()
-                        };
-
+                        
+                        // If the previous command was also a LoadNext then we already have the next image loaded
                         let to_send = if loading_direction == FORWARD {
                             next_img
                         } else {
+                            // If the previous command was LoadPrevious we need to load the image from disk
+                            // because inside next_image there is the image before the one beeing shown now
                             ImageLoader::load_valid_image(&t_dir, &mut t_files, pos, FORWARD)
                         };
 
@@ -280,7 +280,18 @@ impl ImageLoader {
                             .send(BufferResult::Next(to_send))
                             .expect("Main therad shut down");
 
-                        next_img = next_next_img;
+                        // We alreay served the image to the user and now we stat to preload the next image to cut down on loading time
+                        if pos + 1 < t_files.len() {
+                            next_img =
+                                ImageLoader::load_valid_image(&t_dir, &mut t_files, pos + 1, false);
+                        }else{
+                            // In theory wher pos -1 == t_files.len() we just start to send None as a response
+                            // so the image that we are loading now should never be used, but if we do not put anything in next_img
+                            // the compiler gets mad so we do this just to make sure that next_img does not point to memory
+                            // that belongs by now to some other variable
+                            next_img =
+                            ImageLoader::load_valid_image(&t_dir, &mut t_files, pos, false);
+                        }
 
                         loading_direction = FORWARD;
                     }
@@ -303,12 +314,14 @@ impl ImageLoader {
 
                         pos -= 1;
 
+                        /*
                         // the ownership of next_img is going to be transfered, so if needed we clone it here
                         let next_next_img = if pos > 0 {
                             ImageLoader::load_valid_image(&t_dir, &mut t_files, pos - 1, false)
                         } else {
                             next_img.clone()
                         };
+                        */
 
                         let to_send = if loading_direction == BACKWARD {
                             next_img
@@ -320,7 +333,11 @@ impl ImageLoader {
                             .send(BufferResult::Previous(to_send))
                             .expect("Main therad shut down");
 
-                        next_img = next_next_img;
+                        if pos -1 > 0{
+                            next_img = ImageLoader::load_valid_image(&t_dir, &mut t_files, pos - 1, false);
+                        }else{
+                            next_img = ImageLoader::load_valid_image(&t_dir, &mut t_files, pos, false);
+                        }
 
                         loading_direction = BACKWARD;
                     }
